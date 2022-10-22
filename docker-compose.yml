@@ -11,9 +11,9 @@ services:
       - POSTGRES_PASSWORD=postgres
   web:
     build: .
-    command: bash -c "python reviews/manage.py makemigrations && python reviews/manage.py migrate && python reviews/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python reviews2Delete/manage.py makemigrations && python reviews2Delete/manage.py migrate && python reviews2Delete/manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/reviews
+      - .:/reviews2Delete
     ports:
       - "8000:8000"
     depends_on:
