@@ -4,4 +4,4 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /reviews
 COPY requirements.txt /reviews/
 RUN pip install -r requirements.txt
-COPY . ./reviews
+COPY . .

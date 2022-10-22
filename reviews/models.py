@@ -1,20 +1,11 @@
 from django.db import models
 
-
-class User(models.Model):
-    pass
-
-
-class Ride(models.Model):
-    driver = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-
-
-class RidePassenger(models.Model):
-    ride = models.ForeignKey(Ride, on_delete=models.CASCADE)
-    passenger = models.ForeignKey(User, on_delete=models.CASCADE)
+from rides.models import Ride
+from users.models import User
 
 
 class Review(models.Model):
+    review_id = models.AutoField(primary_key=True)
     stars = models.IntegerField()
     description = models.CharField(max_length=500, null=True, blank=True)
     reviewer = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='reviewer')

@@ -9,13 +9,15 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5436:5432"
   web:
     build: .
-    command: bash -c "python reviews/manage.py makemigrations && python reviews/manage.py migrate && python reviews/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "pip install -r requirements.txt && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8004"
     volumes:
       - .:/reviews
     ports:
-      - "8000:8000"
+      - "8004:8004"
     depends_on:
       - db
 
