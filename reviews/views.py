@@ -50,6 +50,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
             except KeyError:
                 return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing user_type parameter", safe=False)
             reviews = self._filter_by_rating(request, reviews)
+
+            try:
+                rating_order = request.GET['rating_order']
+                if rating_order == 'asc':
+                    reviews = reviews.order_by('stars')
+                elif rating_order == 'desc':
+                    reviews = reviews.order_by('-stars')
+                else:
+                    return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Invalid rating_order parameter",
+                                        safe=False)
+            except KeyError:
+                return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing rating_order parameter",
+                                    safe=False)
+
             serializer = ReviewListSerializer(reviews, many=True)
             return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
         else:
