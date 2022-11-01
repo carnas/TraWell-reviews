@@ -6,10 +6,13 @@ from reviews.models import Review
 from reviews.serializers import ReviewListSerializer
 from users.models import User
 from utils.authorization import is_authorized
+from utils.paginations import ReviewsPagination
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewListSerializer
+    pagination_class = ReviewsPagination
+
     queryset = Review.objects.all()
 
     def _filter_by_rating(self, request, reviews):
@@ -26,6 +29,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
             pass
 
         return reviews
+
+    def _paginate_reviews(self, reviews):
+        page = self.paginate_queryset(reviews)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(reviews, many=True)
+        return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
 
     @action(detail=False, methods=['get'], url_path=r'user_reviews/(?P<user_id>[^/.]+)', )
     def user_reviews(self, request, user_id, *args, **kwargs):
@@ -64,7 +77,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing rating_order parameter",
                                     safe=False)
 
-            serializer = ReviewListSerializer(reviews, many=True)
-            return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
+            return self._paginate_reviews(reviews)
         else:
             return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
