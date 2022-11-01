@@ -3,7 +3,7 @@ ISSUER_CLAIM = 'http://localhost:8403/auth/realms/TraWell'
 ALGORITHMS = ['RS256']
 JWT_OPTIONS = {
         'verify_signature': False,
-        'verify_exp': True,
+        'verify_exp': False,
         'verify_iss': True,
         'verify_iat': True,
         'verify_aud': False,
