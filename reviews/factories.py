@@ -11,7 +11,8 @@ class ReviewFactory(factory.django.DjangoModelFactory):
 
     stars = factory.Faker('pyint', min_value=1, max_value=5)
     description = factory.Faker('text', max_nb_chars=500)
+    was_rated_driver = factory.Faker('pybool')
+    created_on = factory.Faker('date')
     reviewer = factory.SubFactory(UserFactory)
     rated = factory.SubFactory(UserFactory)
-    was_rated_driver = factory.Faker('pybool')
     ride = factory.SubFactory(RideFactory)
