@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 
 class ReviewsPagination(pagination.PageNumberPagination):
-    page_size = 4
+    page_size = 15
     page_size_query_param = 'page_size'
     page_query_param = 'page'
 
