@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 
 from reviews.models import Review
 from reviews.serializers import ReviewListSerializer, ReviewSerializer
@@ -43,6 +42,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(reviews, many=True)
         return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
+
+    def _was_rated_driver(self, rated_user_type):
+        if rated_user_type == 'driver':
+            return True
+        elif rated_user_type == 'passenger':
+            return False
+        else:
+            raise KeyError
+
+    def _check_ride_participation(self, driver, passenger, ride):
+        return ride.driver == driver and passenger in ride.passengers.all()
 
     @action(detail=False, methods=['get', 'post'], url_path=r'user_reviews/(?P<user_id>[^/.]+)', )
     def user_reviews(self, request, user_id, *args, **kwargs):
@@ -87,19 +97,25 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 try:
                     email = user_utils.decode_token(token)['email']
                     reviewer = User.objects.get(email=email)
-                    was_rated_driver = user_utils.was_rated_driver(request.data['rated_user_type'])
+                    was_rated_driver = self._was_rated_driver(request.data['rated_user_type'])
                     ride = Ride.objects.get(ride_id=request.data['ride'])
-                    review = Review.objects.create(stars=request.data['rating'], description=request.data['description'],
-                                                   was_rated_driver=was_rated_driver, reviewer=reviewer, rated=rated_user,
-                                                   ride=ride)
-                    review.save()
-                    serializer = ReviewSerializer(review)
-                    return JsonResponse(status=status.HTTP_201_CREATED, data=serializer.data)
+                    is_participation_valid = self._check_ride_participation(rated_user, reviewer, ride) if was_rated_driver \
+                        else self._check_ride_participation(reviewer, rated_user, ride)
+                    if is_participation_valid:
+                        review = Review.objects.create(stars=request.data['rating'], description=request.data['description'],
+                                                       was_rated_driver=was_rated_driver, reviewer=reviewer, rated=rated_user,
+                                                       ride=ride)
+                        review.save()
+                        serializer = ReviewSerializer(review)
+                        return JsonResponse(status=status.HTTP_201_CREATED, data=serializer.data)
+                    else:
+                        return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Invalid participation in ride",
+                                            safe=False)
                 except (KeyError, ValidationError):
                     return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Wrong parameters", safe=False)
-                except User.DoesNotExistError:
+                except User.DoesNotExist:
                     return JsonResponse(status=status.HTTP_404_NOT_FOUND, data="Reviewer user does not exist", safe=False)
-                except Ride.DoesNotExistError:
+                except Ride.DoesNotExist:
                     return JsonResponse(status.HTTP_404_NOT_FOUND, data="Ride does not exist", safe=False)
         else:
             return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
@@ -111,7 +127,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 token = request.headers['Authorization'].split(' ')[1]
                 email = user_utils.decode_token(token)['email']
                 if review.reviewer.email != email:
-                    return JsonResponse(status=HTTP_403_FORBIDDEN, data=f'Not allowed', safe=False)
+                    return JsonResponse(status=status.HTTP_403_FORBIDDEN, data=f'Not allowed', safe=False)
                 else:
                     review.delete()
                     return JsonResponse(status=status.HTTP_200_OK, data=f'Review deleted successfully',

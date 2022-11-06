@@ -19,12 +19,3 @@ def decode_token(token: str):
     except (DecodeError, ExpiredSignatureError, InvalidIssuerError, InvalidAudienceError, InvalidIssuedAtError,
             InvalidSignatureError):
         return {'error': 'Decoding failed'}
-
-
-def was_rated_driver(rated_user_type: str):
-    if rated_user_type == 'driver':
-        return True
-    elif rated_user_type == 'passenger':
-        return False
-    else:
-        return None
