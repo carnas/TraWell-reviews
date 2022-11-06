@@ -83,22 +83,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
         else:
             return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
 
-    @action(detail=False, methods=['delete'], url_path=r'(?P<review_id>[^/.]+)', )
-    def delete(self, request, review_id, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         if is_authorized(request):
             try:
-                review = Review.objects.get(review_id=review_id)
+                review = self.get_object()
                 token = request.headers['Authorization'].split(' ')[1]
                 email = user_utils.decode_token(token)['email']
                 if review.reviewer.email != email:
                     return JsonResponse(status=HTTP_403_FORBIDDEN, data=f'Not allowed', safe=False)
                 else:
                     review.delete()
-                    return JsonResponse(status=status.HTTP_200_OK, data=f'Review with id={review_id} deleted successfully',
+                    return JsonResponse(status=status.HTTP_200_OK, data=f'Review deleted successfully',
                                         safe=False)
             except Review.DoesNotExist:
-                return JsonResponse(status=status.HTTP_404_NOT_FOUND, data=f'Review with id={review_id} not found',
-                                    safe=False)
+                return JsonResponse(status=status.HTTP_404_NOT_FOUND, data=f'Review not found', safe=False)
             except KeyError:
                 return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data='Invalid token', safe=False)
         else:
