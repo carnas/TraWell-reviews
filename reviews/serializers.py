@@ -16,3 +16,9 @@ class ReviewListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('review_id', 'stars', 'description', 'was_rated_driver', 'created_on', 'reviewer')
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ('review_id', 'stars', 'description', 'was_rated_driver', 'created_on')
