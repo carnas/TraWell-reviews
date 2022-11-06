@@ -1,10 +1,12 @@
 from django.http import JsonResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.status import HTTP_403_FORBIDDEN
 
 from reviews.models import Review
 from reviews.serializers import ReviewListSerializer
 from users.models import User
+from utils import user_utils
 from utils.authorization import is_authorized
 from utils.paginations import ReviewsPagination
 
@@ -78,5 +80,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                     safe=False)
 
             return self._paginate_reviews(reviews)
+        else:
+            return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
+
+    def destroy(self, request, *args, **kwargs):
+        if is_authorized(request):
+            try:
+                review = self.get_object()
+                token = request.headers['Authorization'].split(' ')[1]
+                email = user_utils.decode_token(token)['email']
+                if review.reviewer.email != email:
+                    return JsonResponse(status=HTTP_403_FORBIDDEN, data=f'Not allowed', safe=False)
+                else:
+                    review.delete()
+                    return JsonResponse(status=status.HTTP_200_OK, data=f'Review deleted successfully',
+                                        safe=False)
+            except Review.DoesNotExist:
+                return JsonResponse(status=status.HTTP_404_NOT_FOUND, data=f'Review not found', safe=False)
+            except KeyError:
+                return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data='Invalid token', safe=False)
         else:
             return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
