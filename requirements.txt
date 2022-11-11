@@ -3,6 +3,7 @@ cffi==1.15.1
 cryptography==38.0.1
 Django==4.1.2
 django-cors-headers==3.13.0
+django-environ==0.9.0
 djangorestframework==3.14.0
 factory-boy==3.2.1
 Faker==15.1.1
