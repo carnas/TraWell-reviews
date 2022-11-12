@@ -18,7 +18,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
 
-    def _filter_by_rating(self, request, reviews):
+    def _sort_by_rating_order(self, request, reviews):
         try:
             rating_from = request.GET['rating_from']
             reviews = reviews.filter(stars__gte=rating_from)
@@ -54,6 +54,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def _check_ride_participation(self, driver, passenger, ride):
         return ride.driver == driver and passenger in ride.passengers.all()
 
+    def _get_user_reviews_at_top(self, reviews, user):
+        sorted_reviews = []
+        for review in reviews:
+            if review.reviewer == user:
+                sorted_reviews.insert(0, review)
+            else:
+                sorted_reviews.append(review)
+
+        return sorted_reviews
+
     @action(detail=False, methods=['get', 'post'], url_path=r'user_reviews/(?P<user_id>[^/.]+)', )
     def user_reviews(self, request, user_id, *args, **kwargs):
         if is_authorized(request):
@@ -76,7 +86,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                             safe=False)
                 except KeyError:
                     return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing user_type parameter", safe=False)
-                reviews = self._filter_by_rating(request, reviews)
+                reviews = self._sort_by_rating_order(request, reviews)
 
                 try:
                     rating_order = request.GET['rating_order']
@@ -90,6 +100,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 except KeyError:
                     return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing rating_order parameter",
                                         safe=False)
+                try:
+                    token = request.headers['Authorization'].split(' ')[1]
+                    email = user_utils.decode_token(token)['email']
+                    reviews = self._get_user_reviews_at_top(reviews, User.objects.get(email=email))
+                except KeyError:
+                    pass
 
                 return self._paginate_reviews(reviews)
             elif request.method == 'POST':
