@@ -2,11 +2,23 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 
+from reviews.models import Review
 from rides.models import Ride
 from rides.serializers import NotRatedRideSerializer
 from users.models import User
 from utils import user_utils
 from utils.authorization import is_authorized
+
+
+def search_not_rated(rides, reviewer, user):
+    not_rated_rides = []
+    for ride in rides:
+        try:
+            Review.objects.get(ride=ride, reviewer=reviewer, rated=user)
+        except Review.DoesNotExist:
+            not_rated_rides.append(ride)
+
+    return not_rated_rides
 
 
 @api_view(['GET'])
@@ -25,6 +37,7 @@ def get_not_rated_rides(request, user_id):
         rides_user_as_driver = Ride.objects.filter(driver=user, passengers__in=[reviewer])
         rides_reviewer_as_driver = Ride.objects.filter(driver=reviewer, passengers__in=[user])
         rides_with_user_and_reviewer = list(rides_user_as_driver) + list(rides_reviewer_as_driver)
+        rides_with_user_and_reviewer = search_not_rated(rides_with_user_and_reviewer, reviewer, user)
         serializer = NotRatedRideSerializer(rides_with_user_and_reviewer, context=user, many=True)
         return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
     else:
