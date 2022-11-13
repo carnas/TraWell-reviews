@@ -94,18 +94,19 @@ class ReviewViewSet(viewsets.ModelViewSet):
                         reviews = reviews.order_by('stars')
                     elif rating_order == 'desc':
                         reviews = reviews.order_by('-stars')
+                    elif rating_order == 'my_first':
+                        try:
+                            token = request.headers['Authorization'].split(' ')[1]
+                            email = user_utils.decode_token(token)['email']
+                            reviews = self._get_user_reviews_at_top(reviews, User.objects.get(email=email))
+                        except KeyError:
+                            pass
                     else:
                         return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Invalid rating_order parameter",
                                             safe=False)
                 except KeyError:
                     return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data=f"Missing rating_order parameter",
                                         safe=False)
-                try:
-                    token = request.headers['Authorization'].split(' ')[1]
-                    email = user_utils.decode_token(token)['email']
-                    reviews = self._get_user_reviews_at_top(reviews, User.objects.get(email=email))
-                except KeyError:
-                    pass
 
                 return self._paginate_reviews(reviews)
             elif request.method == 'POST':
