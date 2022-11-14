@@ -116,6 +116,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
                     reviewer = User.objects.get(email=email)
                     was_rated_driver = self._was_rated_driver(request.data['rated_user_type'])
                     ride = Ride.objects.get(ride_id=request.data['ride'])
+
+                    review_exists_already = Review.objects.filter(ride=ride, reviewer=reviewer, rated=rated_user).exists()
+                    if review_exists_already:
+                        return JsonResponse(status=status.HTTP_403_FORBIDDEN, data="The review exists already",
+                                            safe=False)
+
                     is_participation_valid = self._check_ride_participation(rated_user, reviewer, ride) if was_rated_driver \
                         else self._check_ride_participation(reviewer, rated_user, ride)
                     if is_participation_valid:
