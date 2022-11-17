@@ -27,5 +27,5 @@ router.register(r'reviews', ReviewViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('rides/', include(rides.urls))
+    path('not_rated_rides/', include(rides.urls))
 ]
