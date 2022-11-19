@@ -3,6 +3,8 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 
+from statistics import mean
+
 from reviews.models import Review
 from reviews.serializers import ReviewListSerializer, ReviewSerializer
 from rides.models import Ride
@@ -63,6 +65,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 sorted_reviews.append(review)
 
         return sorted_reviews
+
+    def _calculate_user_avg_rate(self, user):
+        reviews = Review.objects.filter(rated=user)
+        rates = map(lambda review: review.stars, reviews)
+        avg_rate = mean(rates)
+
+        return avg_rate
 
     @action(detail=False, methods=['get', 'post'], url_path=r'user_reviews/(?P<user_id>[^/.]+)', )
     def user_reviews(self, request, user_id, *args, **kwargs):
@@ -130,6 +139,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                                        ride=ride)
                         review.save()
                         serializer = ReviewSerializer(review)
+                        new_rated_average_rate = self._calculate_user_avg_rate(rated_user)
+                        rated_user.avg_rate = new_rated_average_rate
+                        rated_user.save()
                         return JsonResponse(status=status.HTTP_201_CREATED, data=serializer.data)
                     else:
                         return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Invalid participation in ride",
@@ -152,7 +164,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 if review.reviewer.email != email:
                     return JsonResponse(status=status.HTTP_403_FORBIDDEN, data=f'Not allowed', safe=False)
                 else:
+                    rated = review.rated
                     review.delete()
+                    new_rated_average_rate = self._calculate_user_avg_rate(rated)
+                    rated.avg_rate = new_rated_average_rate
+                    rated.save()
                     return JsonResponse(status=status.HTTP_200_OK, data=f'Review deleted successfully',
                                         safe=False)
             except Review.DoesNotExist:
