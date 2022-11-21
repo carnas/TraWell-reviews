@@ -30,6 +30,19 @@ with app.pool.acquire(block=True) as conn:
     )
     exchange.declare()
 
+    queue_users = kombu.Queue(
+        name='users',
+        exchange=exchange,
+        routing_key='use',
+        channel=conn,
+        message_ttl=600,
+        queue_arguments={
+            'x-queue_rides-type': 'classic'
+        },
+        durable=True
+    )
+    queue_users.declare()
+
     queue_reviews = kombu.Queue(
         name='reviews',
         exchange=exchange,
