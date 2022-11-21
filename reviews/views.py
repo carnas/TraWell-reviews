@@ -12,6 +12,9 @@ from users.models import User
 from utils import user_utils
 from utils.authorization import is_authorized
 from utils.paginations import ReviewsPagination
+from reviews_service.celery import queue_users
+from reviews_service import tasks
+from users.serializers import UserSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -142,6 +145,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
                         new_rated_average_rate = self._calculate_user_avg_rate(rated_user)
                         rated_user.avg_rate = new_rated_average_rate
                         rated_user.save()
+
+                        tasks.publish_message(UserSerializer(rated_user).data, 'avg_change', queue_users, 'use')
+
                         return JsonResponse(status=status.HTTP_201_CREATED, data=serializer.data)
                     else:
                         return JsonResponse(status=status.HTTP_400_BAD_REQUEST, data="Invalid participation in ride",
@@ -169,6 +175,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
                     new_rated_average_rate = self._calculate_user_avg_rate(rated)
                     rated.avg_rate = new_rated_average_rate
                     rated.save()
+
+                    tasks.publish_message(UserSerializer(rated).data, 'avg_change', queue_users, 'use')
+
                     return JsonResponse(status=status.HTTP_200_OK, data=f'Review deleted successfully',
                                         safe=False)
             except Review.DoesNotExist:
