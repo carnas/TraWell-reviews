@@ -139,7 +139,7 @@ with app.pool.acquire(block=True) as conn:
                     create_ride(body['message']['ride'])
 
                 try:
-                    Participation.objects.get(participation_id=body['message']['id'])
+                    Participation.objects.get(id=body['message']['id'])
                 except Participation.DoesNotExist:
                     participation = Participation.objects.create(
                         id=body['message']['id'],
