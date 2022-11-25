@@ -13,9 +13,9 @@ reviews = [
      'description': 'lalalalala',
      'was_rated_driver': True,
      'created_on': datetime.now(),
-     'reviewer_email': 'anna.nowak@wp.pl',  # must be in db
-     'rated_email': 'anonymous@gmail.com',  # must be in db
-     'ride_id': 1}  # must be in db
+     'reviewer_email': 'olga@tokarczuk.com',  # must be in db
+     'rated_email': 'anna@sowa.com',  # must be in db
+     'ride_id': 3}  # must be in db
 ]
 
 
