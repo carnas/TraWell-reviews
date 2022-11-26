@@ -112,21 +112,21 @@ with app.pool.acquire(block=True) as conn:
                         create_ride(instance['ride'])
 
             if body['title'] == 'rides.cancel':
-                check_and_create_user(body['message']['ride']['driver'])
+                check_and_create_user(body['message']['driver'])
                 try:
-                    ride = Ride.objects.get(ride_id=body['message']['ride']['ride_id'])
-                    update_ride(body['message']['ride'], ride)
+                    ride = Ride.objects.get(ride_id=body['message']['ride_id'])
+                    update_ride(body['message'], ride)
                 except Ride.DoesNotExist:
-                    create_ride(body['message']['ride'])
+                    create_ride(body['message'])
 
             if body['title'] == 'rides.cancel.many':
                 for ride in body['message']:
-                    check_and_create_user(body['message']['ride']['driver'])
+                    check_and_create_user(ride['driver'])
                     try:
-                        ride = Ride.objects.get(ride_id=ride['ride']['ride_id'])
-                        update_ride(body['message']['ride'], ride)
+                        ride = Ride.objects.get(ride_id=ride['ride_id'])
+                        update_ride(body['message'], ride)
                     except Ride.DoesNotExist:
-                        create_ride(ride['ride'])
+                        create_ride(ride)
 
             if body['title'] == 'participation':
                 check_and_create_user(body['message']['ride']['driver'])

@@ -34,11 +34,12 @@ def get_not_rated_rides(request, user_id):
         except User.DoesNotExist:
             return JsonResponse(status=status.HTTP_404_NOT_FOUND, data=f'User not found', safe=False)
 
-        rides_user_as_driver = Ride.objects.filter(driver=user, passengers__in=[reviewer])
-        rides_reviewer_as_driver = Ride.objects.filter(driver=reviewer, passengers__in=[user])
+        rides_user_as_driver = Ride.objects.filter(driver=user, passengers__passenger__user=reviewer)
+        rides_reviewer_as_driver = Ride.objects.filter(driver=reviewer, passengers__passenger__user=user)
         rides_with_user_and_reviewer = list(rides_user_as_driver) + list(rides_reviewer_as_driver)
         rides_with_user_and_reviewer = search_not_rated(rides_with_user_and_reviewer, reviewer, user)
         serializer = NotRatedRideSerializer(rides_with_user_and_reviewer, context=user, many=True)
+
         return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
     else:
         return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data='Not authorized', safe=False)
