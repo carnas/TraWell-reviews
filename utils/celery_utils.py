@@ -14,6 +14,30 @@ def create_ride(message):
     new_ride.save()
     return new_ride
 
+
+def add_participation_to_ride(message, ride):
+    passengers = message['passengers']
+    for passenger in passengers:
+        user = User.objects.get(user_id=passenger['user']['user_id'])
+        new_passenger, created = Participation.objects.get_or_create(
+            ride=ride,
+            user=user
+        )
+        new_passenger.save()
+
+
+def create_history_ride(message):
+    new_ride = Ride.objects.create(
+        ride_id=message['ride_id'],
+        city_from=message['city_from'],
+        city_to=message['city_to'],
+        start_date=message['start_date'],
+        driver_id=message['driver']['user_id']
+    )
+    new_ride.save()
+    return new_ride
+
+
 def update_ride(message, ride):
     ride_data = {
         'city_from': message['city_from'],
@@ -38,4 +62,3 @@ def check_and_create_user(message):
         )
         user.save()
     return user
-
