@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rides.models import Ride, Participation
 from users.serializers import UserSerializer
 
+
 class NotRatedRideSerializer(serializers.ModelSerializer):
     was_driver = serializers.SerializerMethodField('check_user_was_driver')
 
@@ -34,4 +35,3 @@ class ParticipationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participation
         fields = ('id', 'ride', 'user')
-

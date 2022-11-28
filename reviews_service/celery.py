@@ -147,6 +147,15 @@ with app.pool.acquire(block=True) as conn:
                         user_id=body['message']['ride']['driver']['user_id']
                     )
                     participation.save()
+            if body['title'] == 'rides.archive':
+                print(body['message'])
+                rides = body['message']
+                for ride in rides:
+                    try:
+                        ride_obj = Ride.objects.get(ride_id=ride['ride_id'])
+                        add_participation_to_ride(ride, ride_obj)
+                    except Ride.DoesNotExist:
+                        create_history_ride(ride)
 
             message.ack()
 
