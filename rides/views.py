@@ -36,9 +36,9 @@ def get_not_rated_rides(request, user_id):
 
         rides_user_as_driver = Ride.objects.filter(driver=user, passengers__passenger__user=reviewer)
         rides_reviewer_as_driver = Ride.objects.filter(driver=reviewer, passengers__passenger__user=user)
-        rides_with_user_and_reviewer = list(rides_user_as_driver) + list(rides_reviewer_as_driver)
-        rides_with_user_and_reviewer = search_not_rated(rides_with_user_and_reviewer, reviewer, user)
-        serializer = NotRatedRideSerializer(rides_with_user_and_reviewer, context=user, many=True)
+        rides_with_user_and_reviewer = set(list(rides_user_as_driver)).union(set(rides_reviewer_as_driver))
+        filtered_rides_with_user_and_reviewer = search_not_rated(rides_with_user_and_reviewer, reviewer, user)
+        serializer = NotRatedRideSerializer(filtered_rides_with_user_and_reviewer, context=user, many=True)
 
         return JsonResponse(status=status.HTTP_200_OK, data=serializer.data, safe=False)
     else:
