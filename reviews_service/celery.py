@@ -12,7 +12,6 @@ django.setup()
 from users.models import User
 from users.serializers import UserSerializer
 from rides.models import Ride, Participation
-from rides.serializers import RideSerializer, ParticipationSerializer
 from utils.celery_utils import *
 
 app = Celery('reviews_service')
@@ -155,7 +154,7 @@ with app.pool.acquire(block=True) as conn:
                         ride_obj = Ride.objects.get(ride_id=ride['ride_id'])
                         add_participation_to_ride(ride, ride_obj)
                     except Ride.DoesNotExist:
-                        create_history_ride(ride)
+                        create_ride(ride)
 
             message.ack()
 
