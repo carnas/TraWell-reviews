@@ -3,7 +3,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 
-from statistics import mean
+from statistics import mean, StatisticsError
 
 from reviews.models import Review
 from reviews.serializers import ReviewListSerializer, ReviewSerializer
@@ -72,7 +72,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def _calculate_user_avg_rate(self, user):
         reviews = Review.objects.filter(rated=user)
         rates = map(lambda review: review.stars, reviews)
-        avg_rate = mean(rates)
+        try:
+            avg_rate = mean(rates)
+        except StatisticsError:
+            return 0
 
         return avg_rate
 
