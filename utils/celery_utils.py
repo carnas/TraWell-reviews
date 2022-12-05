@@ -16,7 +16,8 @@ def add_participation_to_ride(message, ride):
     passengers = message['passengers']
     for passenger in passengers:
         user = User.objects.get(user_id=passenger['user']['user_id'])
-        participation, _ = Participation.objects.get_or_create(user=user, ride=ride)
+        participation, _ = Participation.objects.update_or_create(user_id=user.user_id, ride_id=ride.ride_id,
+                                                                  defaults={'decision': 'accepted'})
 
 
 def create_history_ride(message):
