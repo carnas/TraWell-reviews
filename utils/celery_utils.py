@@ -19,6 +19,18 @@ def add_participation_to_ride(message, ride):
         participation, _ = Participation.objects.get_or_create(user=user, ride=ride)
 
 
+def create_history_ride(message):
+    new_ride = Ride.objects.create(
+        ride_id=message['ride_id'],
+        city_from=message['city_from'],
+        city_to=message['city_to'],
+        start_date=message['start_date'],
+        driver_id=message['driver']
+    )
+    new_ride.save()
+    return new_ride
+
+
 def update_ride(message, ride):
     try:
         Ride.objects.get(ride_id=message['ride_id'])

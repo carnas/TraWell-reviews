@@ -154,7 +154,7 @@ with app.pool.acquire(block=True) as conn:
                         ride_obj = Ride.objects.get(ride_id=ride['ride_id'])
                         add_participation_to_ride(ride, ride_obj)
                     except Ride.DoesNotExist:
-                        create_ride(ride)
+                        create_history_ride(ride)
 
             message.ack()
 
