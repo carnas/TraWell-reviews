@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db_reviews:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5436:5432"
+    networks:
+      - rabbitmq_network
+#  web_reviews:
+#    build: .
+#    command: bash -c "pip install -r requirements.txt && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8004"
+#    volumes:
+#      - .:/reviews
+#    ports:
+#      - "8004:8004"
+#    depends_on:
+#      - db
+
+networks:
+  rabbitmq_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
